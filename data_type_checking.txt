@@ -1,0 +1,93 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+bool is_valid_identifier(const string &str) {
+    if (str.empty() || !isalpha(str[0])) return false;
+    for (char ch : str) {
+        if (!isalnum(ch)) return false;
+    }
+    return true;
+}
+
+bool are_types_compatible(const string &lhs_type, const string &rhs_type) {
+    if (lhs_type == rhs_type) return true;
+    if ((lhs_type == "i" && rhs_type == "f") || (lhs_type == "f" && rhs_type == "i"))
+        return true;
+    if ((lhs_type == "i" && rhs_type == "d") || (lhs_type == "d" && rhs_type == "i"))
+        return true;
+    if ((lhs_type == "i" && rhs_type == "l") || (lhs_type == "l" && rhs_type == "i"))
+        return true;
+    if ((lhs_type == "i" && rhs_type == "c") || (lhs_type == "c" && rhs_type == "i"))
+        return true;
+    if ((lhs_type == "i" && rhs_type == "s") || (lhs_type == "s" && rhs_type == "i"))
+        return true;
+    return false;
+}
+
+bool is_valid_expression(const string &expression, const unordered_map<string, string> &variable_types) {
+    istringstream iss(expression);
+    string lhs, rhs, operand1, op, operand2;
+
+    iss >> lhs >> rhs >> operand1 >> op >> operand2;
+
+    if (!is_valid_identifier(lhs) || variable_types.find(lhs) == variable_types.end()) {
+        cout << "Error: Invalid left-hand side variable or undeclared variable." << endl;
+        return false;
+    }
+
+    bool operand1_is_var = is_valid_identifier(operand1) && variable_types.find(operand1) != variable_types.end();
+    bool operand2_is_var = is_valid_identifier(operand2) && variable_types.find(operand2) != variable_types.end();
+
+    if (operand1_is_var && !are_types_compatible(variable_types.at(lhs), variable_types.at(operand1))) {
+        cout << "Error: Type mismatch between " << lhs << " and " << operand1 << "." << endl;
+        return false;
+    }
+
+    if (operand2_is_var && !are_types_compatible(variable_types.at(lhs), variable_types.at(operand2))) {
+        cout << "Error: Type mismatch between " << lhs << " and " << operand2 << "." << endl;
+        return false;
+    }
+
+    if (!operand1_is_var) {
+        if ((operand1 == "i" && variable_types.at(lhs) != "i") && (operand1 == "f" && variable_types.at(lhs) != "f") &&
+            (operand1 == "d" && variable_types.at(lhs) != "d") && (operand1 == "l" && variable_types.at(lhs) != "l") &&
+            (operand1 == "c" && variable_types.at(lhs) != "c") && (operand1 == "s" && variable_types.at(lhs) != "s")) {
+            cout << "Error: Type mismatch between " << lhs << " and " << operand1 << "." << endl;
+            return false;
+        }
+    }
+    if (!operand2_is_var) {
+        if ((operand2 == "i" && variable_types.at(lhs) != "i") && (operand2 == "f" && variable_types.at(lhs) != "f") &&
+            (operand2 == "d" && variable_types.at(lhs) != "d") && (operand2 == "l" && variable_types.at(lhs) != "l") &&
+            (operand2 == "c" && variable_types.at(lhs) != "c") && (operand2 == "s" && variable_types.at(lhs) != "s")) {
+            cout << "Error: Type mismatch between " << lhs << " and " << operand2 << "." << endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+int main() {
+    unordered_map<string, string> variable_types;
+
+    variable_types["i"] = "i";
+    variable_types["f"] = "f";
+    variable_types["d"] = "d";
+    variable_types["l"] = "l";
+    variable_types["c"] = "c";
+    variable_types["s"] = "s";
+
+    string expression;
+
+    cout << "Enter an expression: ";
+    getline(cin, expression);
+
+    if (is_valid_expression(expression, variable_types)) {
+        cout << "Valid expression!" << endl;
+    } else {
+        cout << "Invalid expression." << endl;
+    }
+
+    return 0;
+}
