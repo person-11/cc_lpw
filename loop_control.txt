@@ -1,0 +1,172 @@
+//loop syntax
+%{
+#include "pract7.tab.h"
+%}
+
+%%
+
+"if"          { return IF; }
+"else"        { return ELSE; }
+"while"       { return WHILE; }
+"for"         { return FOR; }
+
+"int"         { return INT; }
+"float"       { return FLOAT; }
+"char"        { return CHAR; }
+
+[a-zA-Z]+     { return ID; }
+[0-9]+        { return NUM; }
+
+"=="          { return EQ; }
+"!="          { return NEQ; }
+"<="          { return LEQ; }
+">="          { return GEQ; }
+"<"           { return '<'; }
+">"           { return '>'; }
+
+"&&"          { return AND; }
+"||"          { return OR; }
+
+"++"          { return INC; }
+"--"          { return DEC; }
+"="           { return '='; }
+
+[-+*/%^&|{}();=!&|] { return yytext[0]; }
+
+[ \t\n]+      ; // Ignore whitespace
+
+.             { return yytext[0]; }
+
+%%
+
+
+
+y file below
+
+%{
+#include <stdio.h>
+void yyerror(char *str);
+int yywrap();
+%}
+
+%token IF ELSE ID NUM
+%token WHILE FOR
+%token EQ NEQ LEQ GEQ AND OR INC DEC
+%token INT FLOAT CHAR // Add the data types here
+
+%%
+
+SS: SS S
+   | S
+   ;
+
+S: E ';'                // An expression statement
+   | IFST               // An if statement
+   | WHST               // A while statement
+   | FORST              // A for statement
+   | '{' SS '}'         // A block of statements
+   | ';'                // An empty statement
+   ;
+
+
+IFST: IF '(' C ')' S
+     | IF '(' C ')' S ELSE S
+     ;
+
+C: E
+  ;
+
+E: ID '=' E
+  | F
+  ;
+
+F: F OR G
+  | G
+  ;
+
+G: G AND H
+  | H
+  ;
+
+H: H EQ I
+  | H NEQ I
+  | I
+  ;
+
+I: I '<' J
+  | I LEQ J
+  | I '>' J
+  | I GEQ J
+  | J
+  ;
+
+J: J '+' K
+  | J '-' K
+  | K
+  ;
+
+K: K '*' L
+  | K '/' L
+  | L
+  ;
+
+L: ID INC
+  | ID DEC
+  | INC ID
+  | DEC ID
+  | M
+  ;
+
+M: ID
+  | NUM
+  | '(' E ')'
+  ;
+
+WHST: WHILE '(' C ')' S
+     ;
+
+FORST: FOR '(' INIT ';' COND ';' ITER ')' S          // Handle all three parts (init, cond, iter)
+     | FOR '(' INIT ';' COND ')' S                   // Only init and cond, no iter
+     | FOR '(' INIT ';' ')' S                        // Only init, no cond, no iter
+     | FOR '(' ';' COND ';' ITER ')' S               // No init, just cond and iter
+     | FOR '(' ';' COND ')' S                        // No init, just cond
+     | FOR '(' ';' ';' ')' S                         // No init, no cond, no iter
+     | FOR '(' ';' ')' S                             // No init, no cond, no iter
+     ;
+
+
+
+INIT: DECTYPE ID '=' E    // Initialization: type and assignment
+    | /* empty */
+    | ID '=' E          // Or no initialization
+    ;
+
+COND: E                    // Condition: expression (can be empty)
+    | /* empty */           // Or no condition (always true)
+    ;
+
+ITER: E                    // Iteration: expression (can be empty)
+    | /* empty */           // Or no iteration expression
+    ;
+
+DECTYPE: INT
+       | FLOAT
+       | CHAR
+       ; // Add any other data types you want to support
+
+ASSIGN: ID '=' E
+      ;
+
+%%
+
+void yyerror(char *str)
+{
+    printf("Syntax error: %s\n", str);
+}
+
+int yywrap() { return 1; }
+
+int main()
+{
+    return yyparse();
+}
